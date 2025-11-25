@@ -2,11 +2,15 @@ import os
 from openai import OpenAI
 from datetime import datetime
 import json
+from dotenv import load_dotenv
+
+# 从.env文件加载环境变量
+load_dotenv()
 
 # 初始化OpenAI客户端（假设使用DeepSeek API）
 # 请确保已设置环境变量 DEEPSEEK_API_KEY
 client = OpenAI(
-    api_key=os.getenv("DEEPSEEK_API_KEY", "sk-ccdf47624bd94b8ba650ad0286117b45"),
+    api_key=os.getenv("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com"  # DeepSeek API地址
 )
 
