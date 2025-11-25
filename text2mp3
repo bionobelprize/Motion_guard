@@ -1,0 +1,69 @@
+import os
+import requests
+import zipfile
+from io import BytesIO
+import datetime
+
+def text_to_speech(text, output_dir="./output"):
+    chattts_service_host = os.environ.get("CHATTTS_SERVICE_HOST", "localhost")
+    chattts_service_port = os.environ.get("CHATTTS_SERVICE_PORT", "8000")
+    CHATTTS_URL = f"http://{chattts_service_host}:{chattts_service_port}/generate_voice"
+
+    body = {
+        "text": [text],
+        "stream": False,
+        "lang": None,
+        "skip_refine_text": True,
+        "refine_text_only": False,
+        "use_decoder": True,
+        "do_text_normalization": True,
+        "do_homophone_replacement": False,
+        "params_refine_text": {
+            "prompt": "",
+            "top_P": 0.7,
+            "top_K": 20,
+            "temperature": 0.01,
+            "repetition_penalty": 1,
+            "max_new_token": 384,
+            "min_new_token": 0,
+            "show_tqdm": True,
+            "ensure_non_empty": True,
+            "stream_batch": 24,
+        },
+        "params_infer_code": {
+            "prompt": "[speed_5]",
+            "top_P": 0.1,
+            "top_K": 20,
+            "temperature": 0.01,
+            "repetition_penalty": 1.05,
+            "max_new_token": 2048,
+            "min_new_token": 0,
+            "show_tqdm": True,
+            "ensure_non_empty": True,
+            "stream_batch": True,
+            "spk_emb": None,
+        }
+    }
+
+    try:
+        response = requests.post(CHATTTS_URL, json=body)
+        response.raise_for_status()
+        dt = datetime.datetime.now()
+        ts = int(dt.timestamp())
+        tgt = os.path.join(output_dir, str(ts))
+        os.makedirs(tgt, exist_ok=True)
+        with zipfile.ZipFile(BytesIO(response.content), "r") as zip_ref:
+            zip_ref.extractall(tgt)
+        # 返回第一个音频文件路径
+        files = [f for f in os.listdir(tgt) if f.endswith(".mp3")]
+        if files:
+            return os.path.join(tgt, files[0])
+        else:
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Request Error: {e}")
+        return None
+
+# 用法示例
+# audio_path = text_to_speech("你好，欢迎使用文本转语音服务。")
+# print(audio_path)
