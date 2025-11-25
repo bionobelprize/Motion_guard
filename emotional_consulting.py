@@ -9,8 +9,12 @@ load_dotenv()
 
 # 初始化OpenAI客户端（假设使用DeepSeek API）
 # 请确保已设置环境变量 DEEPSEEK_API_KEY
+api_key = os.getenv("DEEPSEEK_API_KEY")
+if not api_key:
+    raise ValueError("DEEPSEEK_API_KEY environment variable is not set. Please set it in your .env file or environment.")
+
 client = OpenAI(
-    api_key=os.getenv("DEEPSEEK_API_KEY"),
+    api_key=api_key,
     base_url="https://api.deepseek.com"  # DeepSeek API地址
 )
 
